@@ -53,6 +53,7 @@ a { color: var(--brand); }
 .small { font-size: 12.5px; }
 .money { font-variant-numeric: tabular-nums; font-weight: 600; }
 .row { display: flex; gap: 10px; align-items: center; }
+.row > * { min-width: 0; }
 .between { justify-content: space-between; }
 .wrap { flex-wrap: wrap; }
 .grow { flex: 1; min-width: 0; }

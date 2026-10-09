@@ -28,7 +28,7 @@ export function render(el, ctx) {
     ${list.length === 0 ? `
       <div class="card empty"><i class="bi bi-scissors"></i>
         <p>No services yet. Add what your shop offers and its price. Customers' bills are built from this list.</p>
-        <div class="row" style="justify-content:center;gap:10px">
+        <div class="row wrap" style="justify-content:center;gap:10px">
           <button class="btn btn-primary" data-act="add"><i class="bi bi-plus-lg"></i> Add service</button>
           <button class="btn" data-act="sample"><i class="bi bi-magic"></i> Load sample services</button>
         </div>
