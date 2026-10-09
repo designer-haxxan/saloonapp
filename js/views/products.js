@@ -9,7 +9,7 @@ export function render(el, ctx) {
   const stockValue = Store.all('products').reduce((s, p) => s + num(p.stock) * num(p.cost), 0);
 
   el.innerHTML = `
-    <div class="grid grid-stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:18px">
+    <div class="grid grid-stats stats-fit">
       <div class="card stat" style="--i:0"><div class="stat-label">Products</div><div class="stat-value">${Store.all('products').length}</div><i class="bi bi-bag stat-icon"></i></div>
       <div class="card stat" style="--i:1"><div class="stat-label">Low or out of stock</div><div class="stat-value">${lowCount}</div><i class="bi bi-exclamation-triangle stat-icon"></i></div>
       <div class="card stat" style="--i:2"><div class="stat-label">Stock value (cost)</div><div class="stat-value" style="font-size:20px">${money(stockValue)}</div><i class="bi bi-box-seam stat-icon"></i></div>

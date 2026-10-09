@@ -32,7 +32,7 @@ export function render(el, ctx) {
             </div>
             ${s.active === false ? '<span class="tag mute">Left</span>' : `<span class="tag ${count ? 'info' : 'mute'}">${count} today</span>`}
           </div>
-          <div class="grid" style="grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
+          <div class="grid-kv" style="margin-top:16px">
             <div><div class="small muted">Shift</div><b>${fmtTime(s.shiftStart || '10:00')} – ${fmtTime(s.shiftEnd || '21:00')}</b></div>
             <div><div class="small muted">Commission</div><b>${num(s.commissionPct)}%</b></div>
             <div><div class="small muted">Salary</div><b class="money">${money(s.salary)}</b></div>

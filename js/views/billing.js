@@ -65,7 +65,7 @@ export function render(el, ctx) {
           <div class="card-head">
             <h3><i class="bi bi-scissors"></i> Services</h3>
             <div class="row"><small class="muted">Performed by</small>
-              <select class="input" id="defStaff" style="width:auto;min-width:170px">${staffOptions(cart.defStaff)}</select></div>
+              <select class="input w-sm" id="defStaff">${staffOptions(cart.defStaff)}</select></div>
           </div>
           <div class="search" style="margin-bottom:14px"><i class="bi bi-search"></i>
             <input class="input" id="svcQ" placeholder="Search services" value="${esc(cart.q)}"></div>
@@ -86,7 +86,7 @@ export function render(el, ctx) {
         <div class="form-grid" style="margin-top:14px;gap:10px">
           <div class="field"><label>Discount</label>
             <div class="row" style="gap:6px"><input class="input" id="discVal" type="number" min="0" step="10" value="${cart.discVal || ''}" placeholder="0">
-              <select class="input" id="discType" style="width:76px"><option value="rs" ${cart.discType === 'rs' ? 'selected' : ''}>Rs</option><option value="pct" ${cart.discType === 'pct' ? 'selected' : ''}>%</option></select></div></div>
+              <select class="input w-xs" id="discType"><option value="rs" ${cart.discType === 'rs' ? 'selected' : ''}>Rs</option><option value="pct" ${cart.discType === 'pct' ? 'selected' : ''}>%</option></select></div></div>
           <div class="field"><label>Tip</label><input class="input" id="tip" type="number" min="0" step="10" value="${cart.tip || ''}" placeholder="0"></div>
           <div class="field"><label>Tip goes to</label><select class="input" id="tipStaff">${staffOptions(cart.tipStaffId, { shopOption: true })}</select></div>
           <div class="field"><label>Payment method</label><select class="input" id="method">${methods.map((m) => `<option ${m === cart.method ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select></div>

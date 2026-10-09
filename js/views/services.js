@@ -18,7 +18,7 @@ export function render(el, ctx) {
     <div class="toolbar">
       <div class="search"><i class="bi bi-search"></i>
         <input class="input" id="svcSearch" placeholder="Search services" value="${esc(filter.q)}"></div>
-      <select class="input" id="svcCat" style="width:auto;min-width:170px">
+      <select class="input w-sm" id="svcCat">
         <option value="">All categories</option>
         ${cats.map((c) => `<option ${c === filter.cat ? 'selected' : ''}>${esc(c)}</option>`).join('')}
       </select>

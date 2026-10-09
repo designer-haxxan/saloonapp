@@ -42,14 +42,14 @@ export function render(el, ctx) {
     <div class="toolbar" style="justify-content:space-between">
       <div class="row" style="gap:6px">
         <button class="icon-btn" data-m="-1"><i class="bi bi-chevron-left"></i></button>
-        <div class="cal-date" style="min-width:180px">${fmtMonth(month)}</div>
+        <div class="cal-date">${fmtMonth(month)}</div>
         <button class="icon-btn" data-m="1"><i class="bi bi-chevron-right"></i></button>
         <button class="btn btn-sm" data-m="0">This month</button>
       </div>
       <button class="btn" data-act="advance"><i class="bi bi-cash"></i> Record advance</button>
     </div>
 
-    <div class="grid grid-stats" style="grid-template-columns:repeat(4,1fr);margin-bottom:18px">
+    <div class="grid grid-stats stats-fit">
       <div class="card stat" style="--i:0"><div class="stat-label">Salaries</div><div class="stat-value" style="font-size:21px">${money(totals.salary)}</div><i class="bi bi-wallet2 stat-icon"></i></div>
       <div class="card stat" style="--i:1"><div class="stat-label">Commission</div><div class="stat-value" style="font-size:21px">${money(totals.commission)}</div><i class="bi bi-percent stat-icon"></i></div>
       <div class="card stat" style="--i:2"><div class="stat-label">Tips</div><div class="stat-value" style="font-size:21px">${money(totals.tips)}</div><i class="bi bi-heart stat-icon"></i></div>

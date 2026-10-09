@@ -43,9 +43,9 @@ export function render(el, ctx) {
       </div>
       ${state.preset === 'custom' ? `
         <div class="row" style="gap:6px;flex-wrap:wrap">
-          <input class="input" type="date" id="fromD" value="${r.from}" style="width:auto">
+          <input class="input auto" type="date" id="fromD" value="${r.from}">
           <span class="muted">to</span>
-          <input class="input" type="date" id="toD" value="${r.to}" style="width:auto">
+          <input class="input auto" type="date" id="toD" value="${r.to}">
         </div>` : `<span class="small muted">${fmtDate(r.from)} – ${fmtDate(r.to)}</span>`}
     </div>
     <div class="seg" style="margin-bottom:18px;flex-wrap:wrap">
@@ -104,7 +104,7 @@ function salesTab(rep, r) {
   const dayRows = Object.entries(days).sort((a, b) => b[0].localeCompare(a[0]));
 
   rep.innerHTML = `
-    <div class="grid grid-stats" style="grid-template-columns:repeat(4,1fr);margin-bottom:18px">
+    <div class="grid grid-stats stats-fit">
       ${kpi('Sales (excl. tips)', money(sales), 'graph-up', 0)}
       ${kpi('Bills', invs.length, 'receipt', 1)}
       ${kpi('Average bill', money(invs.length ? sales / invs.length : 0), 'calculator', 2)}

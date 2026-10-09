@@ -77,7 +77,7 @@ function list(el, ctx) {
   for (const i of all) counts[invoiceStatus(i)] = (counts[invoiceStatus(i)] || 0) + 1;
 
   el.innerHTML = `
-    <div class="grid grid-stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:18px">
+    <div class="grid grid-stats stats-fit">
       <div class="card stat" style="--i:0"><div class="stat-label">Total sales</div><div class="stat-value" data-count="${t.sales}" data-fmt="money">${money(0)}</div><i class="bi bi-receipt stat-icon"></i></div>
       <div class="card stat" style="--i:1"><div class="stat-label">Collected</div><div class="stat-value" data-count="${t.collected}" data-fmt="money">${money(0)}</div><i class="bi bi-cash-coin stat-icon"></i></div>
       <div class="card stat" style="--i:2"><div class="stat-label">Balance to collect</div><div class="stat-value" data-count="${t.balance}" data-fmt="money">${money(0)}</div><i class="bi bi-wallet2 stat-icon"></i></div>

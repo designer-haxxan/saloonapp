@@ -76,7 +76,7 @@ function openDetail(id, ctx) {
           <div class="small muted">${esc(c.notes || 'No notes')}</div>
         </div>
       </div>
-      <div class="grid grid-stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+      <div class="grid grid-stats" style="margin-bottom:16px">
         <div class="card" style="padding:14px"><div class="small muted">Total spent</div><div class="money" style="font-size:18px">${money(spent)}</div></div>
         <div class="card" style="padding:14px"><div class="small muted">Visits / bills</div><div class="money" style="font-size:18px">${hist.length}</div></div>
         <div class="card" style="padding:14px"><div class="small muted">Balance due</div><div class="money" style="font-size:18px;color:${balance > 0 ? 'var(--danger)' : 'var(--ok)'}">${money(balance)}</div></div>

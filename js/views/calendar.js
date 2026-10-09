@@ -60,7 +60,7 @@ export function render(el, ctx) {
         <button data-view="day" class="${state.view === 'day' ? 'on' : ''}">Day</button>
         <button data-view="week" class="${state.view === 'week' ? 'on' : ''}">Week</button>
       </div>
-      <select class="input" id="staffFilter" style="width:auto;min-width:160px">
+      <select class="input w-sm" id="staffFilter">
         <option value="">All staff</option>
         ${Store.all('staff').map((s) => `<option value="${s.id}" ${s.id === state.staff ? 'selected' : ''}>${esc(s.name)}${s.active === false ? ' (left)' : ''}</option>`).join('')}
       </select>
@@ -385,7 +385,7 @@ export function openDetail(id, ctx) {
         <span class="tag ${st[1]}">${st[0]}</span>
         <span class="small muted">${fmtDate(a.date, { weekday: 'long', day: 'numeric', month: 'short' })} · ${fmtTime(a.start)} – ${fmtTime(fromMin(apptEnd(a)))}</span>
       </div>
-      <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">
+      <div class="grid-kv">
         <div><div class="small muted">Phone</div><b>${esc(a.customerPhone || '–')}</b></div>
         <div><div class="small muted">Staff</div><b>${esc(staffName(a.staffId))}</b></div>
       </div>
