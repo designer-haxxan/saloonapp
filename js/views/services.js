@@ -46,6 +46,7 @@ export function render(el, ctx) {
               </div>
               <h4 style="margin:12px 0 4px;font-size:16px">${esc(s.name)}</h4>
               <div class="small muted"><i class="bi bi-clock"></i> ${s.duration} min</div>
+              <div class="small muted" style="margin-top:4px">Cost ${money(s.cost)} · Profit <span style="color:${num(s.price) - num(s.cost) < 0 ? 'var(--danger)' : 'var(--ok)'}">${money(num(s.price) - num(s.cost))}</span></div>
               <div class="row between" style="margin-top:14px">
                 <span class="money" style="font-size:18px;color:var(--brand-deep)">${money(s.price)}</span>
                 <span class="small muted">Edit <i class="bi bi-chevron-right"></i></span>
@@ -80,7 +81,9 @@ function openForm(svc, ctx) {
           <datalist id="catList">${CATEGORIES.map((c) => `<option value="${esc(c)}">`).join('')}</datalist></div>
         <div class="field"><label>Duration (minutes)</label>
           <input class="input" name="duration" type="number" min="5" step="5" required value="${v.duration}"></div>
-        <div class="field"><label>Price (Rs)</label>
+        <div class="field"><label>Cost price (Rs)</label>
+          <input class="input" name="cost" type="number" min="0" step="50" value="${v.cost ?? 0}" placeholder="Materials, consumables"></div>
+        <div class="field"><label>Selling price (Rs)</label>
           <input class="input" name="price" type="number" min="0" step="50" required value="${v.price}"></div>
         <div class="field"><label>Status</label>
           <select class="input" name="active"><option value="1" ${v.active !== false ? 'selected' : ''}>Active</option><option value="0" ${v.active === false ? 'selected' : ''}>Inactive (hidden from billing)</option></select></div>
@@ -93,7 +96,7 @@ function openForm(svc, ctx) {
         const f = readForm(e.target);
         const data = {
           name: f.name.trim(), category: f.category.trim() || 'Other',
-          duration: Math.max(5, num(f.duration)), price: Math.max(0, num(f.price)), active: f.active === '1',
+          duration: Math.max(5, num(f.duration)), price: Math.max(0, num(f.price)), cost: Math.max(0, num(f.cost)), active: f.active === '1',
         };
         if (svc) Store.update('services', svc.id, data); else Store.add('services', data);
         toast(svc ? 'Service updated' : 'Service added', 'ok');

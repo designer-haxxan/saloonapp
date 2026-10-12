@@ -313,7 +313,7 @@ export function openBooking(opts, ctx) {
           const sum = sumOf(v.serviceIds);
           return {
             ...v,
-            items: sum.picked.map((x) => ({ refId: x.id, name: x.name, price: num(x.price), duration: num(x.duration) })),
+            items: sum.picked.map((x) => ({ refId: x.id, name: x.name, price: num(x.price), cost: num(x.cost), duration: num(x.duration) })),
             price: sum.price,
             duration: Math.max(15, sum.duration),
           };

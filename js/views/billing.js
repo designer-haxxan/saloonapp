@@ -179,7 +179,7 @@ function loadAppointment(id) {
   cart.name = a.customerName || '';
   cart.phone = a.customerPhone || '';
   cart.customerId = a.customerId || '';
-  cart.lines = a.items.map((i) => ({ type: 'service', refId: i.refId, name: i.name, rate: num(i.price), qty: 1, staffId: a.staffId || '', duration: num(i.duration) }));
+  cart.lines = a.items.map((i) => ({ type: 'service', refId: i.refId, name: i.name, rate: num(i.price), cost: num(i.cost ?? Store.find('services', i.refId)?.cost), qty: 1, staffId: a.staffId || '', duration: num(i.duration) }));
   cart.defStaff = a.staffId || '';
 }
 
@@ -214,7 +214,7 @@ function renderPicks() {
 function addService(id) {
   const s = Store.find('services', id);
   if (!s) return;
-  cart.lines.push({ type: 'service', refId: s.id, name: s.name, rate: num(s.price), qty: 1, staffId: cart.defStaff || '', duration: num(s.duration) });
+  cart.lines.push({ type: 'service', refId: s.id, name: s.name, rate: num(s.price), cost: num(s.cost), qty: 1, staffId: cart.defStaff || '', duration: num(s.duration) });
   renderLines();
   toast(`${s.name} added`);
 }
@@ -302,7 +302,7 @@ async function save(ctx, print) {
     customerName: customer?.name || name || 'Walk-in customer',
     customerPhone: customer?.phone || phone,
     lines: cart.lines.map((l) => ({
-      type: l.type, refId: l.refId, name: l.name, rate: round(l.rate), qty: num(l.qty),
+      type: l.type, refId: l.refId, name: l.name, rate: round(l.rate), cost: round(num(l.cost)), qty: num(l.qty),
       amount: round(num(l.rate) * num(l.qty)), staffId: l.type === 'service' ? (l.staffId || '') : '',
     })),
     subtotal: c.subtotal,

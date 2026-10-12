@@ -260,13 +260,17 @@ function openExpense(ctx) {
 // ---------- Profit (estimate) ----------
 function profitTab(rep, r) {
   const invs = liveInvoices().filter((i) => inRange(i.date, r));
-  let serviceRev = 0; let productRev = 0; let productCost = 0;
+  let serviceRev = 0; let productRev = 0; let productCost = 0; let serviceCost = 0;
   for (const inv of invs) {
     for (const l of inv.lines) {
-      if (l.type === 'service') serviceRev += num(l.amount);
-      else {
+      if (l.type === 'service') {
+        serviceRev += num(l.amount);
+        serviceCost += num(l.qty) * num(l.cost);
+      } else {
         productRev += num(l.amount);
-        productCost += num(l.qty) * num(Store.find('products', l.refId)?.cost);
+        // Bills saved before cost was recorded fall back to the product's current cost.
+        const unit = l.cost != null ? num(l.cost) : num(Store.find('products', l.refId)?.cost);
+        productCost += num(l.qty) * unit;
       }
     }
   }
@@ -275,12 +279,13 @@ function profitTab(rep, r) {
   const salariesPaid = Store.all('payroll').filter((p) => p.type === 'salary' && inRange(p.paidOn, r)).reduce((s, p) => s + num(p.net), 0);
   const staffCash = advances + salariesPaid;
   const revenue = serviceRev + productRev;
-  const profit = round(revenue - productCost - expenses - staffCash);
+  const profit = round(revenue - productCost - serviceCost - expenses - staffCash);
 
   const lines = [
     ['Service sales', serviceRev, ''],
     ['Product sales', productRev, ''],
-    ['Cost of products sold', -productCost, 'Current purchase cost × quantity sold'],
+    ['Cost of services', -serviceCost, 'Cost price of services × times done'],
+    ['Cost of products sold', -productCost, 'Cost price × quantity sold'],
     ['Expenses', -expenses, 'Rent, electricity, supplies and other costs'],
     ['Staff paid out (salaries and advances)', -staffCash, 'Cash paid to staff in this period'],
   ];
