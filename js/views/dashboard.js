@@ -103,6 +103,7 @@ export function render(el, ctx) {
         <button data-go="billing"><i class="bi bi-receipt-cutoff"></i><b>Bill a customer</b><div class="small muted">Services &amp; products</div></button>
         <button data-go="invoices"><i class="bi bi-file-earmark-check"></i><b>Invoices</b><div class="small muted">Print, share, collect</div></button>
         <button data-go="payroll"><i class="bi bi-cash-stack"></i><b>Run payroll</b><div class="small muted">Salary &amp; commission</div></button>
+        <button data-go="reports?tab=expenses"><i class="bi bi-wallet2"></i><b>Expenses</b><div class="small muted">Add rent, bills, supplies</div></button>
       </div>
     </section>
   `;

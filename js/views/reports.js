@@ -8,6 +8,7 @@ const EXPENSE_CATS = ['Rent', 'Electricity', 'Gas & water', 'Products & supplies
 const TABS = [['sales', 'Sales'], ['staff', 'Staff'], ['services', 'Services'], ['expenses', 'Expenses'], ['profit', 'Profit']];
 
 const state = { tab: 'sales', preset: 'month', from: '', to: '' };
+let lastQuery = null;
 
 function range() {
   const t = todayStr();
@@ -34,6 +35,13 @@ function paymentsIn(r) {
 }
 
 export function render(el, ctx) {
+  // Open a tab named in the link (e.g. #/reports?tab=expenses) once per navigation, not on every refresh.
+  const qs = ctx.query.toString();
+  if (qs !== lastQuery) {
+    lastQuery = qs;
+    const wanted = ctx.query.get('tab');
+    if (wanted && TABS.some(([k]) => k === wanted)) state.tab = wanted;
+  }
   const r = range();
   el.innerHTML = `
     <div class="toolbar" style="justify-content:space-between">
