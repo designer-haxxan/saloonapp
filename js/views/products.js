@@ -73,8 +73,8 @@ function openForm(p, ctx) {
       <form id="prodForm" class="form-grid">
         <div class="field full"><label>Product name</label><input class="input" name="name" required value="${esc(v.name)}"></div>
         <div class="field"><label>SKU / barcode (optional)</label><input class="input" name="sku" value="${esc(v.sku || '')}"></div>
-        <div class="field"><label>Selling price (Rs)</label><input class="input" name="price" type="number" min="0" step="10" required value="${v.price}"></div>
-        <div class="field"><label>Cost price (Rs)</label><input class="input" name="cost" type="number" min="0" step="10" value="${v.cost}"></div>
+        <div class="field"><label>Selling price (Rs)</label><input class="input" name="price" type="number" min="0" step="any" required value="${v.price}"></div>
+        <div class="field"><label>Cost price (Rs)</label><input class="input" name="cost" type="number" min="0" step="any" value="${v.cost}"></div>
         <div class="field"><label>Stock in hand</label><input class="input" name="stock" type="number" min="0" value="${v.stock}"></div>
         <div class="field"><label>Alert when stock is at or below</label><input class="input" name="minStock" type="number" min="0" value="${v.minStock}"></div>
       </form>`,

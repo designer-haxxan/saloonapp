@@ -60,7 +60,7 @@ function openForm(member, ctx) {
         <div class="field"><label>Role</label>
           <select class="input" name="role">${ROLES.map((r) => `<option ${r === v.role ? 'selected' : ''}>${r}</option>`).join('')}</select></div>
         <div class="field"><label>Phone (WhatsApp)</label><input class="input" name="phone" inputmode="tel" value="${esc(v.phone)}" placeholder="0300-1234567"></div>
-        <div class="field"><label>Monthly salary (Rs)</label><input class="input" name="salary" type="number" min="0" step="500" value="${v.salary}"></div>
+        <div class="field"><label>Monthly salary (Rs)</label><input class="input" name="salary" type="number" min="0" step="any" value="${v.salary}"></div>
         <div class="field"><label>Commission on services (%)</label><input class="input" name="commissionPct" type="number" min="0" max="100" step="0.5" value="${v.commissionPct}"></div>
         <div class="field"><label>Calendar colour</label>
           <div class="chips" id="colorPick">${COLORS.map((c) => `

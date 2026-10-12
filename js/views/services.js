@@ -82,9 +82,9 @@ function openForm(svc, ctx) {
         <div class="field"><label>Duration (minutes)</label>
           <input class="input" name="duration" type="number" min="5" step="5" required value="${v.duration}"></div>
         <div class="field"><label>Cost price (Rs)</label>
-          <input class="input" name="cost" type="number" min="0" step="50" value="${v.cost ?? 0}" placeholder="Materials, consumables"></div>
+          <input class="input" name="cost" type="number" min="0" step="any" value="${v.cost ?? 0}" placeholder="Materials, consumables"></div>
         <div class="field"><label>Selling price (Rs)</label>
-          <input class="input" name="price" type="number" min="0" step="50" required value="${v.price}"></div>
+          <input class="input" name="price" type="number" min="0" step="any" required value="${v.price}"></div>
         <div class="field"><label>Status</label>
           <select class="input" name="active"><option value="1" ${v.active !== false ? 'selected' : ''}>Active</option><option value="0" ${v.active === false ? 'selected' : ''}>Inactive (hidden from billing)</option></select></div>
       </form>`,

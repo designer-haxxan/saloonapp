@@ -178,7 +178,7 @@ function openPayment(inv, ctx) {
     html: `
       <form id="payForm" class="form-grid">
         <div class="field full"><label>Balance due</label><div class="money" style="font-size:22px;color:var(--danger)">${money(bal)}</div></div>
-        <div class="field"><label>Amount received (Rs)</label><input class="input" name="amount" type="number" min="1" max="${bal}" step="10" required value="${bal}"></div>
+        <div class="field"><label>Amount received (Rs)</label><input class="input" name="amount" type="number" min="1" max="${bal}" step="any" required value="${bal}"></div>
         <div class="field"><label>Method</label><select class="input" name="method">${methods.map((m) => `<option>${esc(m)}</option>`).join('')}</select></div>
       </form>`,
     footer: '<button class="btn" data-close>Cancel</button><button class="btn btn-ok" form="payForm" type="submit"><i class="bi bi-check2"></i> Save payment</button>',

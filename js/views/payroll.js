@@ -108,7 +108,7 @@ function openAdvance(ctx, staff) {
     html: `
       <form id="advForm" class="form-grid">
         <div class="field full"><label>Staff</label><select class="input" name="staffId">${staff.map((s) => `<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select></div>
-        <div class="field"><label>Amount (Rs)</label><input class="input" name="amount" type="number" min="1" step="100" required></div>
+        <div class="field"><label>Amount (Rs)</label><input class="input" name="amount" type="number" min="1" step="any" required></div>
         <div class="field"><label>Date</label><input class="input" name="date" type="date" value="${todayStr()}" required></div>
         <div class="field full"><label>Note (optional)</label><input class="input" name="note" placeholder="e.g. Eid advance"></div>
       </form>`,
@@ -138,7 +138,7 @@ function openPay(s, month, ctx) {
     html: `
       ${slipLines(s, base, 0)}
       <form id="payForm" class="form-grid" style="margin-top:16px">
-        <div class="field"><label>Other deductions (Rs)</label><input class="input" name="deductions" type="number" min="0" step="100" value="0"></div>
+        <div class="field"><label>Other deductions (Rs)</label><input class="input" name="deductions" type="number" min="0" step="any" value="0"></div>
         <div class="field"><label>Paid by</label><select class="input" name="method"><option>Cash</option><option>Bank Transfer</option><option>JazzCash</option><option>EasyPaisa</option></select></div>
       </form>
       <div class="row between" style="margin-top:16px;font-size:18px"><b>Net pay</b><span class="money" id="netOut" style="color:var(--brand-deep)">${money(calcNet(0))}</span></div>`,

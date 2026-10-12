@@ -238,7 +238,7 @@ function openExpense(ctx) {
       <form id="expForm" class="form-grid">
         <div class="field"><label>Date</label><input class="input" type="date" name="date" value="${todayStr()}" required></div>
         <div class="field"><label>Category</label><select class="input" name="category">${EXPENSE_CATS.map((c) => `<option>${c}</option>`).join('')}</select></div>
-        <div class="field"><label>Amount (Rs)</label><input class="input" type="number" min="1" step="50" name="amount" required></div>
+        <div class="field"><label>Amount (Rs)</label><input class="input" type="number" min="1" step="any" name="amount" required></div>
         <div class="field"><label>Note</label><input class="input" name="note" placeholder="e.g. May electricity bill"></div>
       </form>`,
     footer: '<button class="btn" data-close>Cancel</button><button class="btn btn-primary" form="expForm" type="submit"><i class="bi bi-check2"></i> Save</button>',

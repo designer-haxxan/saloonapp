@@ -85,13 +85,13 @@ export function render(el, ctx) {
 
         <div class="form-grid" style="margin-top:14px;gap:10px">
           <div class="field"><label>Discount</label>
-            <div class="row" style="gap:6px"><input class="input" id="discVal" type="number" min="0" step="10" value="${cart.discVal || ''}" placeholder="0">
+            <div class="row" style="gap:6px"><input class="input" id="discVal" type="number" min="0" step="any" value="${cart.discVal || ''}" placeholder="0">
               <select class="input w-xs" id="discType"><option value="rs" ${cart.discType === 'rs' ? 'selected' : ''}>Rs</option><option value="pct" ${cart.discType === 'pct' ? 'selected' : ''}>%</option></select></div></div>
-          <div class="field"><label>Tip</label><input class="input" id="tip" type="number" min="0" step="10" value="${cart.tip || ''}" placeholder="0"></div>
+          <div class="field"><label>Tip</label><input class="input" id="tip" type="number" min="0" step="any" value="${cart.tip || ''}" placeholder="0"></div>
           <div class="field"><label>Tip goes to</label><select class="input" id="tipStaff">${staffOptions(cart.tipStaffId, { shopOption: true })}</select></div>
           <div class="field"><label>Payment method</label><select class="input" id="method">${methods.map((m) => `<option ${m === cart.method ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select></div>
           <div class="field full"><label>Paid now</label>
-            <div class="row" style="gap:6px"><input class="input" id="paid" type="number" min="0" step="10" placeholder="Full amount" value="${cart.paid ?? ''}">
+            <div class="row" style="gap:6px"><input class="input" id="paid" type="number" min="0" step="any" placeholder="Full amount" value="${cart.paid ?? ''}">
               <button class="btn btn-sm" id="fullBtn" type="button">Full</button></div>
             <span class="small muted">Leave as Full, or enter less for a part payment. The rest stays on the customer's balance.</span></div>
         </div>
@@ -246,7 +246,7 @@ function renderLines() {
           <span class="money line-amt" data-amt="${i}" style="display:block;margin-top:4px;color:var(--brand-deep)">${money(num(l.rate) * num(l.qty))}</span>
         </div>
         <input class="input qty" type="number" min="1" step="1" data-i="${i}" value="${l.qty}" aria-label="Quantity">
-        <input class="input rate" type="number" min="0" step="10" data-i="${i}" value="${l.rate}" aria-label="Rate">
+        <input class="input rate" type="number" min="0" step="any" data-i="${i}" value="${l.rate}" aria-label="Rate">
         <button class="icon-btn" data-rm="${i}" style="width:34px;height:34px" aria-label="Remove"><i class="bi bi-x"></i></button>
       </div>`).join('');
   }
