@@ -406,7 +406,8 @@ export function openDetail(id, ctx) {
       ${a.status === 'booked' ? '<button class="btn btn-ok" data-st="arrived"><i class="bi bi-person-check"></i> Arrived</button>' : ''}
       ${open ? '<button class="btn btn-gold" data-bill><i class="bi bi-receipt"></i> Bill now</button>' : ''}
       ${inv ? '<button class="btn btn-ok" data-inv><i class="bi bi-file-earmark-text"></i> Invoice</button>' : ''}
-      ${open ? '<button class="btn" data-st="noshow">No-show</button><button class="btn btn-danger" data-st="cancelled">Cancel</button>' : ''}
+      ${open ? '<button class="btn" data-st="noshow">No-show</button><button class="btn btn-danger" data-st="cancelled"><i class="bi bi-x-circle"></i> ' + (siblings.length > 1 ? 'Cancel this visit' : 'Cancel booking') + '</button>' : ''}
+      ${open && siblings.length > 1 ? `<button class="btn btn-danger" data-cancel-all><i class="bi bi-x-octagon"></i> Cancel all ${siblings.filter((x) => x.status === 'booked' || x.status === 'arrived').length} visits</button>` : ''}
       ${a.customerPhone ? `<a class="btn" target="_blank" rel="noopener" href="${esc(waLink(a.customerPhone, msg))}"><i class="bi bi-whatsapp"></i> Remind</a>` : ''}
       <button class="btn" data-edit><i class="bi bi-pencil"></i> Edit</button>
       <button class="btn btn-danger" data-del aria-label="Delete"><i class="bi bi-trash"></i></button>`,
@@ -425,6 +426,15 @@ export function openDetail(id, ctx) {
         if (t.closest('[data-edit]')) { close(); return openBooking({ appt: a.id }, ctx); }
         const sib = t.closest('[data-sib]');
         if (sib) { close(); return openDetail(sib.dataset.sib, ctx); }
+        if (t.closest('[data-cancel-all]')) {
+          const open = siblings.filter((x) => x.status === 'booked' || x.status === 'arrived');
+          const ok = await confirmBox(`Cancel all ${open.length} open visits in "${booking?.title || 'this booking'}"? Visits that are already done are not changed.`, { okText: 'Cancel visits', danger: true });
+          if (!ok) return;
+          open.forEach((x) => Store.update('appointments', x.id, { status: 'cancelled' }));
+          toast(`${open.length} visits cancelled`, 'ok');
+          close();
+          return ctx.refresh();
+        }
         if (t.closest('[data-del]')) {
           if (!await confirmBox('Delete this appointment?', { okText: 'Delete', danger: true })) return;
           Store.remove('appointments', a.id);

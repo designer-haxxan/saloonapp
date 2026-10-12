@@ -85,7 +85,7 @@ function list(el, ctx) {
     <div class="toolbar">
       <div class="search"><i class="bi bi-search"></i><input class="input" id="invQ" placeholder="Search number, name or phone" value="${esc(q)}"></div>
       <div class="seg" style="flex-wrap:wrap">
-        ${[['all', 'All'], ['unpaid', 'Unpaid'], ['partial', 'Part paid'], ['paid', 'Paid'], ['void', 'Void']].map(([k, l]) =>
+        ${[['all', 'All'], ['unpaid', 'Unpaid'], ['partial', 'Part paid'], ['paid', 'Paid'], ['void', 'Cancelled']].map(([k, l]) =>
           `<button data-f="${k}" class="${filter === k ? 'on' : ''}">${l} ${counts[k] ? `<small>${counts[k]}</small>` : ''}</button>`).join('')}
       </div>
       <button class="btn btn-primary" data-go="billing"><i class="bi bi-plus-lg"></i> New bill</button>
@@ -144,7 +144,7 @@ function detail(el, id, ctx) {
       ${!inv.voided && bal > 0 ? '<button class="btn btn-ok" data-pay><i class="bi bi-cash-coin"></i> Record payment</button>' : ''}
       <button class="btn btn-gold" data-print><i class="bi bi-printer"></i> Print</button>
       ${digits(inv.customerPhone) ? `<a class="btn" target="_blank" rel="noopener" href="${esc(waLink(inv.customerPhone, msg))}"><i class="bi bi-whatsapp"></i> WhatsApp</a>` : ''}
-      ${!inv.voided ? '<button class="btn btn-danger" data-void><i class="bi bi-slash-circle"></i> Void</button>' : ''}
+      ${!inv.voided ? '<button class="btn btn-danger" data-void><i class="bi bi-x-circle"></i> Cancel sale</button>' : ''}
     </div>
     ${receiptHTML(inv, s)}
     ${(inv.payments || []).length ? `
@@ -161,10 +161,10 @@ function detail(el, id, ctx) {
     if (t.closest('[data-print]')) return printHtml(receiptHTML(inv, s));
     if (t.closest('[data-pay]')) return openPayment(inv, ctx);
     if (t.closest('[data-void]')) {
-      const ok = await confirmBox(`Void invoice ${inv.number}? Its money is removed from reports and product stock is put back.`, { okText: 'Void invoice', danger: true });
+      const ok = await confirmBox(`Cancel sale ${inv.number}? Its money is removed from reports and profit, product stock is put back, and a linked appointment is reopened.`, { okText: 'Cancel sale', danger: true });
       if (!ok) return;
       voidInvoice(inv);
-      toast(`${inv.number} voided`);
+      toast(`${inv.number} cancelled`);
       return ctx.refresh();
     }
   };

@@ -16,7 +16,7 @@ export function invoiceStatus(i) {
 }
 
 export const STATUS_LABEL = {
-  paid: ['Paid', 'ok'], partial: ['Part paid', 'warn'], unpaid: ['Unpaid', 'danger'], void: ['Void', 'mute'],
+  paid: ['Paid', 'ok'], partial: ['Part paid', 'warn'], unpaid: ['Unpaid', 'danger'], void: ['Cancelled', 'mute'],
 };
 
 export const APPT_STATUS = {
