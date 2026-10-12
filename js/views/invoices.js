@@ -5,6 +5,8 @@ import { liveInvoices, sumInvoices, invoiceStatus, invoiceBalance, invoiceGrand,
 
 let q = '';
 let filter = 'all';
+let dateOnly = '';        // set from a link such as #/invoices?date=2026-10-12
+let lastQuery = null;
 
 // Receipt markup shared by the invoice screen, printing and the billing screen.
 export function receiptHTML(inv, s = Store.settings()) {
@@ -63,6 +65,9 @@ export function receiptHTML(inv, s = Store.settings()) {
 export function render(el, ctx) {
   const id = ctx.params[0];
   if (id) return detail(el, id, ctx);
+  // Apply the date from the link once per navigation, not on every refresh.
+  const qs = ctx.query.toString();
+  if (qs !== lastQuery) { lastQuery = qs; dateOnly = ctx.query.get('date') || ''; }
   list(el, ctx);
 }
 
@@ -70,13 +75,15 @@ export function render(el, ctx) {
 function list(el, ctx) {
   const all = Store.all('invoices').slice().sort((a, b) => (b.date + b.createdAt).localeCompare(a.date + a.createdAt));
   const shown = all.filter((i) =>
+    (!dateOnly || i.date === dateOnly) &&
     (filter === 'all' || invoiceStatus(i) === filter) &&
     (!q || `${i.number} ${i.customerName} ${i.customerPhone}`.toLowerCase().includes(q)));
-  const t = sumInvoices(liveInvoices());
+  const t = sumInvoices(liveInvoices().filter((i) => !dateOnly || i.date === dateOnly));
   const counts = { all: all.length };
   for (const i of all) counts[invoiceStatus(i)] = (counts[invoiceStatus(i)] || 0) + 1;
 
   el.innerHTML = `
+    ${dateOnly ? `<div class="row wrap" style="margin-bottom:14px"><span class="tag info"><i class="bi bi-calendar-day"></i> Only ${fmtDate(dateOnly)}</span><button class="btn btn-sm" data-alldates>Show all dates</button></div>` : ''}
     <div class="grid grid-stats stats-fit">
       <div class="card stat" style="--i:0"><div class="stat-label">Total sales</div><div class="stat-value" data-count="${t.sales}" data-fmt="money">${money(0)}</div><i class="bi bi-receipt stat-icon"></i></div>
       <div class="card stat" style="--i:1"><div class="stat-label">Collected</div><div class="stat-value" data-count="${t.collected}" data-fmt="money">${money(0)}</div><i class="bi bi-cash-coin stat-icon"></i></div>
@@ -118,6 +125,7 @@ function list(el, ctx) {
   el.onclick = (e) => {
     const f = e.target.closest('[data-f]');
     if (f) { filter = f.dataset.f; return list(el, ctx); }
+    if (e.target.closest('[data-alldates]')) { dateOnly = ''; return list(el, ctx); }
     if (e.target.closest('[data-go]')) return ctx.go('#/billing');
     const row = e.target.closest('[data-open]');
     if (row) ctx.go(`#/invoices/${row.dataset.open}`);

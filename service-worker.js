@@ -1,5 +1,5 @@
 // Offline cache for Salon Pro. Bump VERSION whenever any file in SHELL changes.
-const VERSION = 'salonpro-v1.0.8';
+const VERSION = 'salonpro-v1.0.9';
 const SHELL = [
   './', './index.html', './manifest.json', './css/style.css', './icons/icon.svg',
   './js/app.js', './js/store.js', './js/util.js', './js/domain.js',

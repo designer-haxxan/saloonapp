@@ -1,6 +1,6 @@
 import * as Store from '../store.js';
 import { esc, money, todayStr, fmtDate, fmtTime, monthOf, countUp, initials, num, addDays, toMin } from '../util.js';
-import { apptsOn, liveInvoices, invoicesInMonth, sumProfit, APPT_STATUS, staffName, staffById } from '../domain.js';
+import { apptsOn, liveInvoices, invoicesInMonth, sumProfit, sumInvoices, APPT_STATUS, staffName, staffById } from '../domain.js';
 
 export function render(el, ctx) {
   const today = todayStr();
@@ -9,6 +9,7 @@ export function render(el, ctx) {
   const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   const todayAppts = apptsOn(today);
+  const todaySales = sumInvoices(liveInvoices().filter((i) => i.date === today));
   const todayProfit = sumProfit(liveInvoices().filter((i) => i.date === today));
   const monthProfit = sumProfit(invoicesInMonth(monthOf(today)));
   const dueAll = liveInvoices().reduce((t, i) => t + Math.max(0, num(i.total) + num(i.tip) - num(i.paid)), 0);
@@ -44,6 +45,19 @@ export function render(el, ctx) {
         <button class="btn btn-gold" data-go="calendar?new=1"><i class="bi bi-calendar-plus"></i> New booking</button>
         <button class="btn" style="background:rgba(255,255,255,.18);color:#fff;border-color:transparent" data-go="billing"><i class="bi bi-receipt"></i> New bill</button>
       </div>
+    </section>
+
+    <section class="top-actions" style="margin-top:18px">
+      <button class="top-action sale" data-go="invoices?date=${today}">
+        <span class="top-icon"><i class="bi bi-receipt-cutoff"></i></span>
+        <span><small>Today's sale</small><b>${money(todaySales.sales)}</b></span>
+        <i class="bi bi-chevron-right top-arrow"></i>
+      </button>
+      <button class="top-action exp" data-go="reports?tab=expenses">
+        <span class="top-icon"><i class="bi bi-wallet2"></i></span>
+        <span><small>Expenses</small><b>Add &amp; view</b></span>
+        <i class="bi bi-chevron-right top-arrow"></i>
+      </button>
     </section>
 
     <section class="grid grid-stats" style="margin-top:18px">
@@ -127,7 +141,6 @@ export function render(el, ctx) {
           <button data-go="billing"><i class="bi bi-receipt-cutoff"></i><b>Bill a customer</b><div class="small muted">Services &amp; products</div></button>
           <button data-go="invoices"><i class="bi bi-file-earmark-check"></i><b>Invoices</b><div class="small muted">Print, share, collect</div></button>
           <button data-go="payroll"><i class="bi bi-cash-stack"></i><b>Run payroll</b><div class="small muted">Salary &amp; commission</div></button>
-          <button data-go="reports?tab=expenses"><i class="bi bi-wallet2"></i><b>Expenses</b><div class="small muted">Add rent, bills, supplies</div></button>
         </div>
       </div>
     </section>
