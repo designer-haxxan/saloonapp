@@ -65,5 +65,34 @@ export function lastDays(today, n) {
   return out;
 }
 
-export const invoicesInMonth = (month) => liveInvoices().filter((i) => monthOf(i.date) === month);
+// Profit of one bill, split into service and product profit.
+// Revenue is each line's amount after the bill discount (tax and tip are not income).
+// Cost is the cost price stored on the line (older bills fall back to the current product cost).
+export function invoiceProfit(inv) {
+  const subtotal = num(inv.subtotal);
+  const ratio = subtotal > 0 ? (subtotal - num(inv.discount)) / subtotal : 1;
+  let service = 0;
+  let product = 0;
+  for (const l of inv.lines || []) {
+    const revenue = num(l.amount) * ratio;
+    const unitCost = l.cost != null ? num(l.cost) : (l.type === 'product' ? num(Store.find('products', l.refId)?.cost) : 0);
+    const profit = revenue - num(l.qty) * unitCost;
+    if (l.type === 'service') service += profit;
+    else product += profit;
+  }
+  return { service: round(service), product: round(product), total: round(service + product) };
+}
+
+// Sum of invoiceProfit over a list of bills.
+export function sumProfit(list) {
+  return list.reduce((t, inv) => {
+    const p = invoiceProfit(inv);
+    t.service += p.service;
+    t.product += p.product;
+    t.total += p.total;
+    return t;
+  }, { service: 0, product: 0, total: 0 });
+}
+
+export const invoicesInMonth =(month) => liveInvoices().filter((i) => monthOf(i.date) === month);
 export { startOfWeek, addDays };

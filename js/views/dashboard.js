@@ -1,6 +1,6 @@
 import * as Store from '../store.js';
-import { esc, money, todayStr, fmtDate, fmtTime, monthOf, countUp, initials, num, $, toMin } from '../util.js';
-import { apptsOn, apptEnd, liveInvoices, sumInvoices, invoicesInMonth, lastDays, APPT_STATUS, staffName, staffById } from '../domain.js';
+import { esc, money, todayStr, fmtDate, fmtTime, monthOf, countUp, initials, num, addDays, toMin } from '../util.js';
+import { apptsOn, liveInvoices, invoicesInMonth, sumProfit, APPT_STATUS, staffName, staffById } from '../domain.js';
 
 export function render(el, ctx) {
   const today = todayStr();
@@ -9,11 +9,18 @@ export function render(el, ctx) {
   const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   const todayAppts = apptsOn(today);
-  const todaySales = sumInvoices(liveInvoices().filter((i) => i.date === today));
-  const monthSales = sumInvoices(invoicesInMonth(monthOf(today)));
-  const dueAll = sumInvoices(liveInvoices());
-  const days = lastDays(today, 7);
-  const maxDay = Math.max(1, ...days.map((d) => d.total));
+  const todayProfit = sumProfit(liveInvoices().filter((i) => i.date === today));
+  const monthProfit = sumProfit(invoicesInMonth(monthOf(today)));
+  const dueAll = liveInvoices().reduce((t, i) => t + Math.max(0, num(i.total) + num(i.tip) - num(i.paid)), 0);
+
+  // Profit for each of the last 7 days, oldest first
+  const days = [];
+  for (let k = 6; k >= 0; k--) {
+    const d = addDays(today, -k);
+    days.push({ date: d, profit: sumProfit(liveInvoices().filter((i) => i.date === d)).total });
+  }
+  const maxDay = Math.max(1, ...days.map((d) => Math.abs(d.profit)));
+  const week = days.reduce((t, d) => t + d.profit, 0);
 
   const upcoming = Store.all('appointments')
     .filter((a) => a.date >= today && (a.status === 'booked' || a.status === 'arrived'))
@@ -41,24 +48,42 @@ export function render(el, ctx) {
 
     <section class="grid grid-stats" style="margin-top:18px">
       ${statCard('Today\'s bookings', todayAppts.length, 'calendar-check', false)}
-      ${statCard('Today\'s sales', todaySales.sales, 'cash-coin', true)}
-      ${statCard('This month', monthSales.sales, 'graph-up-arrow', true)}
-      ${statCard('Money to collect', dueAll.balance, 'wallet2', true)}
+      ${statCard('Today\'s profit', todayProfit.total, 'graph-up-arrow', true)}
+      ${statCard('This month\'s profit', monthProfit.total, 'cash-stack', true)}
+      ${statCard('Money to collect', dueAll, 'wallet2', true)}
     </section>
 
     <section class="grid grid-2" style="margin-top:18px">
       <div class="card">
-        <div class="card-head"><h3>Sales, last 7 days</h3><span class="tag">${money(days.reduce((s2, d) => s2 + d.total, 0))}</span></div>
+        <div class="card-head"><h3>Profit by type</h3><span class="small muted">Service and product profit</span></div>
+        <div class="grid-kv">
+          <div class="list-item" style="--i:0;cursor:default;flex-direction:column;align-items:flex-start">
+            <span class="tag info"><i class="bi bi-scissors"></i> Services</span>
+            <div class="money" style="font-size:20px;margin-top:8px" data-count="${todayProfit.service}" data-fmt="money">${money(0)}</div>
+            <div class="small muted">Today · month ${money(monthProfit.service)}</div>
+          </div>
+          <div class="list-item" style="--i:1;cursor:default;flex-direction:column;align-items:flex-start">
+            <span class="tag ok"><i class="bi bi-bag"></i> Products</span>
+            <div class="money" style="font-size:20px;margin-top:8px" data-count="${todayProfit.product}" data-fmt="money">${money(0)}</div>
+            <div class="small muted">Today · month ${money(monthProfit.product)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Profit, last 7 days</h3><span class="tag ${week < 0 ? 'danger' : 'ok'}">${money(week)}</span></div>
         <div class="bars">
           ${days.map((d, i) => `
-            <div class="bar" title="${fmtDate(d.date)}: ${money(d.total)}">
-              <span class="bar-val">${d.total ? money(d.total).replace('Rs ', '') : '–'}</span>
-              <div class="bar-fill" style="--i:${i};height:${Math.max(2, (d.total / maxDay) * 100)}%"></div>
+            <div class="bar" title="${fmtDate(d.date)}: ${money(d.profit)}">
+              <span class="bar-val">${d.profit ? money(d.profit).replace('Rs ', '') : '–'}</span>
+              <div class="bar-fill" style="--i:${i};height:${Math.max(2, (Math.abs(d.profit) / maxDay) * 100)}%;${d.profit < 0 ? 'background:var(--danger)' : ''}"></div>
               <span class="bar-day">${fmtDate(d.date, { weekday: 'short' })}</span>
             </div>`).join('')}
         </div>
       </div>
+    </section>
 
+    <section class="grid grid-2" style="margin-top:18px">
       <div class="card">
         <div class="card-head"><h3>Upcoming bookings</h3><button class="btn btn-sm btn-ghost" data-go="calendar">View all</button></div>
         ${upcoming.length ? `<div class="list">${upcoming.map((a, i) => `
@@ -72,9 +97,7 @@ export function render(el, ctx) {
           </div>`).join('')}</div>`
           : `<div class="empty"><i class="bi bi-calendar-heart"></i>No upcoming bookings. Create one from the Calendar.</div>`}
       </div>
-    </section>
 
-    <section class="grid grid-2" style="margin-top:18px">
       <div class="card">
         <div class="card-head"><h3>Team today</h3><button class="btn btn-sm btn-ghost" data-go="staff">Manage</button></div>
         ${staffToday.length ? `<div class="list">${staffToday.map((st, i) => `
@@ -85,7 +108,9 @@ export function render(el, ctx) {
           </div>`).join('')}</div>`
           : `<div class="empty"><i class="bi bi-person-plus"></i>Add your staff in the Staff screen.</div>`}
       </div>
+    </section>
 
+    <section class="grid grid-2" style="margin-top:18px">
       <div class="card">
         <div class="card-head"><h3>Low stock</h3><button class="btn btn-sm btn-ghost" data-go="products">Products</button></div>
         ${lowStock.length ? `<div class="list">${lowStock.slice(0, 6).map((p, i) => `
@@ -95,15 +120,15 @@ export function render(el, ctx) {
           </div>`).join('')}</div>`
           : `<div class="empty"><i class="bi bi-check2-circle"></i>Stock levels look good.</div>`}
       </div>
-    </section>
-
-    <section style="margin-top:18px">
-      <div class="quick">
-        <button data-go="calendar?new=1"><i class="bi bi-calendar-plus"></i><b>Book appointment</b><div class="small muted">Single or multi-day</div></button>
-        <button data-go="billing"><i class="bi bi-receipt-cutoff"></i><b>Bill a customer</b><div class="small muted">Services &amp; products</div></button>
-        <button data-go="invoices"><i class="bi bi-file-earmark-check"></i><b>Invoices</b><div class="small muted">Print, share, collect</div></button>
-        <button data-go="payroll"><i class="bi bi-cash-stack"></i><b>Run payroll</b><div class="small muted">Salary &amp; commission</div></button>
-        <button data-go="reports?tab=expenses"><i class="bi bi-wallet2"></i><b>Expenses</b><div class="small muted">Add rent, bills, supplies</div></button>
+      <div class="card">
+        <div class="card-head"><h3>Quick actions</h3></div>
+        <div class="quick">
+          <button data-go="calendar?new=1"><i class="bi bi-calendar-plus"></i><b>Book appointment</b><div class="small muted">Single or multi-day</div></button>
+          <button data-go="billing"><i class="bi bi-receipt-cutoff"></i><b>Bill a customer</b><div class="small muted">Services &amp; products</div></button>
+          <button data-go="invoices"><i class="bi bi-file-earmark-check"></i><b>Invoices</b><div class="small muted">Print, share, collect</div></button>
+          <button data-go="payroll"><i class="bi bi-cash-stack"></i><b>Run payroll</b><div class="small muted">Salary &amp; commission</div></button>
+          <button data-go="reports?tab=expenses"><i class="bi bi-wallet2"></i><b>Expenses</b><div class="small muted">Add rent, bills, supplies</div></button>
+        </div>
       </div>
     </section>
   `;
