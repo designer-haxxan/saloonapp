@@ -103,7 +103,7 @@ function list(el, ctx) {
     ${shown.length ? `
     <div class="card" style="padding:0">
       <div class="table-wrap"><table class="tbl">
-        <thead><tr><th>Invoice</th><th>Date</th><th>Customer</th><th class="num">Total</th><th class="num">Paid</th><th>Status</th></tr></thead>
+        <thead><tr><th>Invoice</th><th>Date</th><th>Customer</th><th class="num">Total</th><th class="num">Paid</th><th>Status</th><th></th></tr></thead>
         <tbody>
           ${shown.map((i, n) => {
             const st = invoiceStatus(i);
@@ -114,6 +114,7 @@ function list(el, ctx) {
               <td class="num money">${money(invoiceGrand(i))}</td>
               <td class="num money">${money(i.paid)}</td>
               <td><span class="tag ${STATUS_LABEL[st][1]}">${STATUS_LABEL[st][0]}</span></td>
+              <td style="text-align:right"><button class="btn btn-sm btn-ghost" data-delrow="${i.id}" aria-label="Delete bill ${esc(i.number)}" title="Delete bill"><i class="bi bi-trash" style="color:var(--danger)"></i></button></td>
             </tr>`;
           }).join('')}
         </tbody>
@@ -122,10 +123,21 @@ function list(el, ctx) {
 
   const search = $('#invQ', el);
   search.oninput = () => { q = search.value.trim().toLowerCase(); list(el, ctx); const s2 = $('#invQ', el); s2.focus(); s2.setSelectionRange(s2.value.length, s2.value.length); };
-  el.onclick = (e) => {
+  el.onclick = async (e) => {
     const f = e.target.closest('[data-f]');
     if (f) { filter = f.dataset.f; return list(el, ctx); }
     if (e.target.closest('[data-alldates]')) { dateOnly = ''; return list(el, ctx); }
+    const del = e.target.closest('[data-delrow]');
+    if (del) {
+      e.stopPropagation();
+      const inv = Store.find('invoices', del.dataset.delrow);
+      if (!inv) return;
+      const ok = await confirmBox(DELETE_WARNING(inv), { okText: 'Delete bill', danger: true });
+      if (!ok) return;
+      deleteInvoice(inv);
+      toast(`${inv.number} deleted`);
+      return ctx.refresh();
+    }
     if (e.target.closest('[data-go]')) return ctx.go('#/billing');
     const row = e.target.closest('[data-open]');
     if (row) ctx.go(`#/invoices/${row.dataset.open}`);
@@ -153,6 +165,7 @@ function detail(el, id, ctx) {
       <button class="btn btn-gold" data-print><i class="bi bi-printer"></i> Print</button>
       ${digits(inv.customerPhone) ? `<a class="btn" target="_blank" rel="noopener" href="${esc(waLink(inv.customerPhone, msg))}"><i class="bi bi-whatsapp"></i> WhatsApp</a>` : ''}
       ${!inv.voided ? '<button class="btn btn-danger" data-void><i class="bi bi-x-circle"></i> Cancel sale</button>' : ''}
+      <button class="btn btn-danger" data-delete aria-label="Delete bill"><i class="bi bi-trash"></i> Delete bill</button>
     </div>
     ${receiptHTML(inv, s)}
     ${(inv.payments || []).length ? `
@@ -168,6 +181,13 @@ function detail(el, id, ctx) {
     if (t.closest('[data-back]')) return ctx.go('#/invoices');
     if (t.closest('[data-print]')) return printHtml(receiptHTML(inv, s));
     if (t.closest('[data-pay]')) return openPayment(inv, ctx);
+    if (t.closest('[data-delete]')) {
+      const ok = await confirmBox(DELETE_WARNING(inv), { okText: 'Delete bill', danger: true });
+      if (!ok) return;
+      deleteInvoice(inv);
+      toast(`${inv.number} deleted`);
+      return ctx.go('#/invoices');
+    }
     if (t.closest('[data-void]')) {
       const ok = await confirmBox(`Cancel sale ${inv.number}? Its money is removed from reports and profit, product stock is put back, and a linked appointment is reopened.`, { okText: 'Cancel sale', danger: true });
       if (!ok) return;
@@ -208,8 +228,8 @@ function openPayment(inv, ctx) {
   });
 }
 
-// Restores product stock and reopens the linked appointment so nothing is lost.
-export function voidInvoice(inv) {
+// Puts back what a live bill took: product stock, and the linked appointment (reopened, not lost).
+function reverseEffects(inv) {
   for (const l of inv.lines.filter((x) => x.type === 'product')) {
     const p = Store.find('products', l.refId);
     if (p) Store.update('products', p.id, { stock: num(p.stock) + num(l.qty) });
@@ -217,5 +237,18 @@ export function voidInvoice(inv) {
   if (inv.apptId && Store.find('appointments', inv.apptId)) {
     Store.update('appointments', inv.apptId, { status: 'arrived', invoiceId: '' });
   }
+}
+
+// Cancel: keeps the bill on record, marked Cancelled, and removes it from money totals.
+export function voidInvoice(inv) {
+  if (!inv.voided) reverseEffects(inv);
   Store.update('invoices', inv.id, { voided: true, voidedAt: new Date().toISOString() });
 }
+
+// Delete: removes the bill record completely. Its money, profit and commission disappear from every report.
+export function deleteInvoice(inv) {
+  if (!inv.voided) reverseEffects(inv);
+  Store.remove('invoices', inv.id);
+}
+
+const DELETE_WARNING = (inv) => `Delete bill ${inv.number} permanently? It will be removed from invoices, reports, profit and commission. Stock is put back and a linked appointment is reopened. This cannot be undone.`;

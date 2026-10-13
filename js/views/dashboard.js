@@ -1,27 +1,28 @@
 import * as Store from '../store.js';
-import { esc, money, todayStr, fmtDate, fmtTime, monthOf, countUp, initials, num, addDays, toMin } from '../util.js';
-import { apptsOn, liveInvoices, invoicesInMonth, sumProfit, sumInvoices, APPT_STATUS, staffName, staffById } from '../domain.js';
+import { esc, money, todayStr, fmtDate, fmtTime, monthOf, countUp, initials, num, addDays, toMin, parseYMD } from '../util.js';
+import { apptsOn, liveInvoices, invoicesInMonth, sumInvoices, periodResult, APPT_STATUS, staffName, staffById } from '../domain.js';
 
 export function render(el, ctx) {
   const today = todayStr();
   const s = Store.settings();
   const hour = new Date().getHours();
   const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const monthStart = monthOf(today) + '-01';
 
   const todayAppts = apptsOn(today);
   const todaySales = sumInvoices(liveInvoices().filter((i) => i.date === today));
-  const todayProfit = sumProfit(liveInvoices().filter((i) => i.date === today));
-  const monthProfit = sumProfit(invoicesInMonth(monthOf(today)));
+  const todayR = periodResult(today, today);
+  const monthR = periodResult(monthStart, today);
   const dueAll = liveInvoices().reduce((t, i) => t + Math.max(0, num(i.total) + num(i.tip) - num(i.paid)), 0);
 
-  // Profit for each of the last 7 days, oldest first
+  // Net profit for each of the last 7 days, oldest first
   const days = [];
   for (let k = 6; k >= 0; k--) {
     const d = addDays(today, -k);
-    days.push({ date: d, profit: sumProfit(liveInvoices().filter((i) => i.date === d)).total });
+    days.push({ date: d, net: periodResult(d, d).net });
   }
-  const maxDay = Math.max(1, ...days.map((d) => Math.abs(d.profit)));
-  const week = days.reduce((t, d) => t + d.profit, 0);
+  const maxDay = Math.max(1, ...days.map((d) => Math.abs(d.net)));
+  const week = days.reduce((t, d) => t + d.net, 0);
 
   const upcoming = Store.all('appointments')
     .filter((a) => a.date >= today && (a.status === 'booked' || a.status === 'arrived'))
@@ -32,6 +33,9 @@ export function render(el, ctx) {
   const staffToday = Store.all('staff').filter((x) => x.active !== false).map((st) => ({
     ...st, count: todayAppts.filter((a) => a.staffId === st.id).length,
   }));
+
+  const row = (label, t, m, cls = '') => `
+    <tr class="${cls}"><td>${label}</td><td class="num money">${money(t)}</td><td class="num money">${money(m)}</td></tr>`;
 
   el.innerHTML = `
     <section class="hero">
@@ -62,35 +66,38 @@ export function render(el, ctx) {
 
     <section class="grid grid-stats" style="margin-top:18px">
       ${statCard('Today\'s bookings', todayAppts.length, 'calendar-check', false)}
-      ${statCard('Today\'s profit', todayProfit.total, 'graph-up-arrow', true)}
-      ${statCard('This month\'s profit', monthProfit.total, 'cash-stack', true)}
+      ${statCard(todayR.net >= 0 ? 'Today\'s profit' : 'Today\'s loss', todayR.net, 'graph-up-arrow', true, todayR.net < 0)}
+      ${statCard(monthR.net >= 0 ? 'This month\'s profit' : 'This month\'s loss', monthR.net, 'cash-stack', true, monthR.net < 0)}
       ${statCard('Money to collect', dueAll, 'wallet2', true)}
     </section>
 
     <section class="grid grid-2" style="margin-top:18px">
       <div class="card">
-        <div class="card-head"><h3>Profit by type</h3><span class="small muted">Service and product profit</span></div>
-        <div class="grid-kv">
-          <div class="list-item" style="--i:0;cursor:default;flex-direction:column;align-items:flex-start">
-            <span class="tag info"><i class="bi bi-scissors"></i> Services</span>
-            <div class="money" style="font-size:20px;margin-top:8px" data-count="${todayProfit.service}" data-fmt="money">${money(0)}</div>
-            <div class="small muted">Today · month ${money(monthProfit.service)}</div>
-          </div>
-          <div class="list-item" style="--i:1;cursor:default;flex-direction:column;align-items:flex-start">
-            <span class="tag ok"><i class="bi bi-bag"></i> Products</span>
-            <div class="money" style="font-size:20px;margin-top:8px" data-count="${todayProfit.product}" data-fmt="money">${money(0)}</div>
-            <div class="small muted">Today · month ${money(monthProfit.product)}</div>
-          </div>
-        </div>
+        <div class="card-head"><h3>Profit &amp; loss</h3><span class="small muted">Automatic: sales − costs − expenses − staff</span></div>
+        <div class="table-wrap"><table class="tbl">
+          <thead><tr><th></th><th class="num">Today</th><th class="num">This month</th></tr></thead>
+          <tbody>
+            ${row('Service profit', todayR.service, monthR.service)}
+            ${row('Product profit', todayR.product, monthR.product)}
+            ${row('− Expenses', -todayR.expenses, -monthR.expenses)}
+            ${row('− Staff (salary + commission)', -todayR.staff, -monthR.staff)}
+          </tbody>
+          <tfoot><tr>
+            <th>${todayR.net >= 0 ? 'Net profit' : 'Net loss'}</th>
+            <th class="num money" style="color:${todayR.net < 0 ? 'var(--danger)' : 'var(--ok)'}">${money(todayR.net)}</th>
+            <th class="num money" style="color:${monthR.net < 0 ? 'var(--danger)' : 'var(--ok)'}">${money(monthR.net)}</th>
+          </tr></tfoot>
+        </table></div>
+        <p class="small muted" style="margin:10px 0 0">Staff salary is counted by day (monthly salary ÷ days in the month). Tips are not counted.</p>
       </div>
 
       <div class="card">
-        <div class="card-head"><h3>Profit, last 7 days</h3><span class="tag ${week < 0 ? 'danger' : 'ok'}">${money(week)}</span></div>
+        <div class="card-head"><h3>Net profit, last 7 days</h3><span class="tag ${week < 0 ? 'danger' : 'ok'}">${money(week)}</span></div>
         <div class="bars">
           ${days.map((d, i) => `
-            <div class="bar" title="${fmtDate(d.date)}: ${money(d.profit)}">
-              <span class="bar-val">${d.profit ? money(d.profit).replace('Rs ', '') : '–'}</span>
-              <div class="bar-fill" style="--i:${i};height:${Math.max(2, (Math.abs(d.profit) / maxDay) * 100)}%;${d.profit < 0 ? 'background:var(--danger)' : ''}"></div>
+            <div class="bar" title="${fmtDate(d.date)}: ${money(d.net)}">
+              <span class="bar-val">${d.net ? money(d.net).replace('Rs ', '') : '–'}</span>
+              <div class="bar-fill" style="--i:${i};height:${Math.max(2, (Math.abs(d.net) / maxDay) * 100)}%;${d.net < 0 ? 'background:var(--danger)' : ''}"></div>
               <span class="bar-day">${fmtDate(d.date, { weekday: 'short' })}</span>
             </div>`).join('')}
         </div>
@@ -155,9 +162,9 @@ export function render(el, ctx) {
   };
 }
 
-function statCard(label, value, icon, isMoney) {
+function statCard(label, value, icon, isMoney, isLoss = false) {
   return `
-    <div class="card stat">
+    <div class="card stat" ${isLoss ? 'style="background:linear-gradient(135deg,#c83b3b,#8e1f1f)"' : ''}>
       <div class="stat-label">${label}</div>
       <div class="stat-value" data-count="${num(value)}" ${isMoney ? 'data-fmt="money"' : ''}>${isMoney ? money(0) : 0}</div>
       <i class="bi bi-${icon} stat-icon"></i>

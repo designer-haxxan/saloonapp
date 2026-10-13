@@ -1,6 +1,6 @@
 // Business rules shared by all screens: balances, appointment times, statuses.
 import * as Store from './store.js';
-import { toMin, num, round, addDays, startOfWeek, monthOf } from './util.js';
+import { toMin, num, round, addDays, startOfWeek, monthOf, parseYMD } from './util.js';
 
 // Voided invoices never count toward money.
 export const liveInvoices = () => Store.all('invoices').filter((i) => !i.voided);
@@ -81,6 +81,43 @@ export function invoiceProfit(inv) {
     else product += profit;
   }
   return { service: round(service), product: round(product), total: round(service + product) };
+}
+
+const dayCount = (from, to) => Math.round((parseYMD(to) - parseYMD(from)) / 86400000) + 1;
+const daysInMonthOf = (s) => { const d = parseYMD(s); return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); };
+
+// Profit or loss for a date range (inclusive, YYYY-MM-DD):
+// service profit + product profit - expenses - staff cost.
+// Staff cost = each active salary, prorated by days over the month, plus commission on services they did.
+// Tips are passed on to staff and are not counted either way.
+export function periodResult(from, to) {
+  const invs = liveInvoices().filter((i) => i.date >= from && i.date <= to);
+  const gross = sumProfit(invs);
+  const expenses = Store.all('expenses').filter((x) => x.date >= from && x.date <= to).reduce((s, x) => s + num(x.amount), 0);
+  const prorate = dayCount(from, to) / daysInMonthOf(to);
+  const salaries = Store.all('staff').filter((s) => s.active !== false).reduce((t, s) => t + num(s.salary) * prorate, 0);
+
+  const pct = new Map(Store.all('staff').map((s) => [s.id, num(s.commissionPct)]));
+  let commission = 0;
+  for (const inv of invs) {
+    for (const l of inv.lines) {
+      if (l.type === 'service' && l.staffId) commission += num(l.amount) * (pct.get(l.staffId) || 0) / 100;
+    }
+  }
+
+  const expensesR = round(expenses);
+  const salariesR = round(salaries);
+  const commissionR = round(commission);
+  return {
+    service: gross.service,
+    product: gross.product,
+    gross: gross.total,
+    expenses: expensesR,
+    salaries: salariesR,
+    commission: commissionR,
+    staff: round(salariesR + commissionR),
+    net: round(gross.total - expensesR - salariesR - commissionR),
+  };
 }
 
 // Sum of invoiceProfit over a list of bills.
